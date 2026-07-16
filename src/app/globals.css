@@ -2,26 +2,39 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Base design tokens — dark theme palette used across all sections */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #0a0a0f;
+  --foreground: #f4f4f5;
+  --surface: #14141c;
+  --accent-purple: #8b5cf6;
+  --accent-cyan: #22d3ee;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* Smooth scrolling for navbar anchor links */
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-inter), system-ui, sans-serif;
 }
 
+/* Reusable gradient text utility for headings and accents */
 @layer utilities {
-  .text-balance {
-    text-wrap: balance;
+  .text-gradient {
+    @apply bg-gradient-accent bg-clip-text text-transparent;
+  }
+
+  /* Section heading underline with purple-to-cyan gradient */
+  .section-underline {
+    @apply relative inline-block pb-2;
+  }
+
+  .section-underline::after {
+    content: "";
+    @apply absolute bottom-0 left-0 h-0.5 w-full rounded-full bg-gradient-accent;
   }
 }
