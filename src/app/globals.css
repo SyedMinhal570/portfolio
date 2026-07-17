@@ -9,11 +9,27 @@
   --surface: #14141c;
   --accent-purple: #8b5cf6;
   --accent-cyan: #22d3ee;
+  --section-py: 5rem;
+  --section-py-lg: 7rem;
 }
 
 /* Smooth scrolling for navbar anchor links */
 html {
   scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 body {
@@ -26,6 +42,11 @@ body {
 @layer utilities {
   .text-gradient {
     @apply bg-gradient-accent bg-clip-text text-transparent;
+  }
+
+  /* Consistent vertical rhythm for all content sections */
+  .section-padding {
+    @apply px-4 py-20 sm:px-6 sm:py-28 lg:px-8;
   }
 
   /* Section heading underline with purple-to-cyan gradient */

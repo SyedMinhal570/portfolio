@@ -1,15 +1,12 @@
 "use client";
 
 /**
- * ContactForm — client-side validated contact form (frontend only for Task 1/2).
- *
- * Validation runs on blur AND on submit attempt for inline error feedback.
- * The actual API/database call will be added in Task 4 inside `handleContactSubmit`.
+ * ContactForm — validated contact form with polished styling and scroll entrance.
  */
 
 import { FormEvent, useCallback, useState } from "react";
-import { motion } from "framer-motion";
-import { CheckCircle, Loader2, Send } from "lucide-react";
+import { motion, useReducedMotion } from "framer-motion";
+import { AlertCircle, CheckCircle, Loader2, Send } from "lucide-react";
 import {
   ContactFormData,
   ContactFormErrors,
@@ -20,8 +17,8 @@ import {
   validateMessage,
   validateSubject,
 } from "@/lib/validation";
+import { fadeUpVariants, sectionViewport } from "@/lib/motion";
 
-/** Initial empty form state */
 const initialFormData: ContactFormData = {
   fullName: "",
   email: "",
@@ -29,21 +26,6 @@ const initialFormData: ContactFormData = {
   message: "",
 };
 
-/**
- * ============================================================
- * handleContactSubmit — DROP-IN POINT FOR TASK 4 API INTEGRATION
- * ============================================================
- * Replace the simulated delay + console.log below with a real
- * fetch() call to your /api/contact route once the backend is ready.
- *
- * Example (Task 4):
- *   const response = await fetch("/api/contact", {
- *     method: "POST",
- *     headers: { "Content-Type": "application/json" },
- *     body: JSON.stringify(data),
- *   });
- *   if (!response.ok) throw new Error("Failed to send message");
- */
 async function handleContactSubmit(data: ContactFormData): Promise<void> {
   const response = await fetch("/api/contact", {
     method: "POST",
@@ -57,15 +39,22 @@ async function handleContactSubmit(data: ContactFormData): Promise<void> {
   }
 }
 
+const inputClassName =
+  "w-full rounded-xl border border-white/10 bg-background px-4 py-3 text-white placeholder-zinc-500 transition-colors focus:border-accent-purple focus:outline-none focus:ring-2 focus:ring-accent-purple/20";
+
 export default function ContactForm() {
+  const reduced = useReducedMotion();
+  const item = fadeUpVariants(reduced);
+
   const [formData, setFormData] = useState<ContactFormData>(initialFormData);
   const [errors, setErrors] = useState<ContactFormErrors>({});
-  const [touched, setTouched] = useState<Partial<Record<keyof ContactFormData, boolean>>>({});
+  const [touched, setTouched] = useState<
+    Partial<Record<keyof ContactFormData, boolean>>
+  >({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  /** Update a single field and re-validate if the field was already touched */
   const handleChange = (field: keyof ContactFormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
 
@@ -77,7 +66,6 @@ export default function ContactForm() {
     }
   };
 
-  /** Mark field as touched and validate on blur */
   const handleBlur = (field: keyof ContactFormData) => {
     setTouched((prev) => ({ ...prev, [field]: true }));
     setErrors((prev) => ({
@@ -86,8 +74,10 @@ export default function ContactForm() {
     }));
   };
 
-  /** Run the correct validator for a single field */
-  function getFieldError(field: keyof ContactFormData, value: string): string | null {
+  function getFieldError(
+    field: keyof ContactFormData,
+    value: string
+  ): string | null {
     switch (field) {
       case "fullName":
         return validateFullName(value);
@@ -106,7 +96,6 @@ export default function ContactForm() {
     async (e: FormEvent<HTMLFormElement>) => {
       e.preventDefault();
 
-      // Mark all fields touched so every error shows on submit attempt
       setTouched({
         fullName: true,
         email: true,
@@ -129,12 +118,12 @@ export default function ContactForm() {
         setFormData(initialFormData);
         setTouched({});
         setErrors({});
-
-        // Auto-hide success toast after 5 seconds
         setTimeout(() => setShowSuccess(false), 5000);
       } catch (error) {
         console.error("Contact form submission failed:", error);
-        setSubmitError(error instanceof Error ? error.message : "Something went wrong.");
+        setSubmitError(
+          error instanceof Error ? error.message : "Something went wrong."
+        );
       } finally {
         setIsSubmitting(false);
       }
@@ -145,27 +134,29 @@ export default function ContactForm() {
   const messageLength = formData.message.length;
 
   return (
-    <section id="contact" className="px-4 py-20 sm:px-6 sm:py-28 lg:px-8">
+    <section
+      id="contact"
+      className="section-padding scroll-mt-24 border-t border-white/5"
+    >
       <div className="mx-auto max-w-2xl">
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ duration: 0.5 }}
+          initial="hidden"
+          whileInView="visible"
+          viewport={sectionViewport}
+          variants={item}
           className="mb-10 text-center sm:text-left"
         >
-          <h2 className="section-underline font-heading text-3xl font-bold text-white sm:text-4xl">
+          <h2 className="section-underline font-heading text-3xl font-bold tracking-tight text-white sm:text-4xl">
             Contact
           </h2>
-          <p className="mt-4 text-zinc-400">
+          <p className="mt-4 text-base leading-relaxed text-zinc-400 sm:text-lg">
             Have a question or want to collaborate? Send me a message.
           </p>
         </motion.div>
 
-        {/* Success toast */}
         {showSuccess && (
           <motion.div
-            initial={{ opacity: 0, y: -10 }}
+            initial={reduced ? false : { opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             role="status"
             aria-live="polite"
@@ -176,32 +167,32 @@ export default function ContactForm() {
           </motion.div>
         )}
 
-        {/* Error toast */}
         {submitError && (
           <motion.div
-            initial={{ opacity: 0, y: -10 }}
+            initial={reduced ? false : { opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            role="status"
-            aria-live="polite"
+            role="alert"
             className="mb-6 flex items-center gap-3 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400"
           >
-            <span aria-hidden="true">⚠️</span>
+            <AlertCircle size={20} aria-hidden="true" />
             {submitError}
           </motion.div>
         )}
 
         <motion.form
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-60px" }}
-          transition={{ duration: 0.5, delay: 0.1 }}
+          initial="hidden"
+          whileInView="visible"
+          viewport={sectionViewport}
+          variants={item}
           onSubmit={handleSubmit}
           noValidate
-          className="rounded-xl border border-white/10 bg-surface p-6 sm:p-8 shadow-glow"
+          className="rounded-xl border border-white/10 bg-surface p-6 shadow-glow sm:p-8"
         >
-          {/* Full Name */}
           <div className="mb-5">
-            <label htmlFor="fullName" className="mb-2 block text-sm font-medium text-zinc-300">
+            <label
+              htmlFor="fullName"
+              className="mb-2 block text-sm font-medium text-zinc-300"
+            >
               Full Name <span className="text-accent-purple">*</span>
             </label>
             <input
@@ -215,19 +206,25 @@ export default function ContactForm() {
               onBlur={() => handleBlur("fullName")}
               aria-invalid={!!errors.fullName}
               aria-describedby={errors.fullName ? "fullName-error" : undefined}
-              className="w-full rounded-xl border border-white/10 bg-background px-4 py-3 text-white placeholder-zinc-500 transition-colors focus:border-accent-purple focus:outline-none focus:ring-2 focus:ring-accent-purple/20"
+              className={inputClassName}
               placeholder="Your full name"
             />
             {errors.fullName && (
-              <p id="fullName-error" className="mt-1.5 text-sm text-red-400" role="alert">
+              <p
+                id="fullName-error"
+                className="mt-1.5 text-sm text-red-400"
+                role="alert"
+              >
                 {errors.fullName}
               </p>
             )}
           </div>
 
-          {/* Email */}
           <div className="mb-5">
-            <label htmlFor="email" className="mb-2 block text-sm font-medium text-zinc-300">
+            <label
+              htmlFor="email"
+              className="mb-2 block text-sm font-medium text-zinc-300"
+            >
               Email <span className="text-accent-purple">*</span>
             </label>
             <input
@@ -241,19 +238,25 @@ export default function ContactForm() {
               onBlur={() => handleBlur("email")}
               aria-invalid={!!errors.email}
               aria-describedby={errors.email ? "email-error" : undefined}
-              className="w-full rounded-xl border border-white/10 bg-background px-4 py-3 text-white placeholder-zinc-500 transition-colors focus:border-accent-purple focus:outline-none focus:ring-2 focus:ring-accent-purple/20"
+              className={inputClassName}
               placeholder="you@example.com"
             />
             {errors.email && (
-              <p id="email-error" className="mt-1.5 text-sm text-red-400" role="alert">
+              <p
+                id="email-error"
+                className="mt-1.5 text-sm text-red-400"
+                role="alert"
+              >
                 {errors.email}
               </p>
             )}
           </div>
 
-          {/* Subject (optional) */}
           <div className="mb-5">
-            <label htmlFor="subject" className="mb-2 block text-sm font-medium text-zinc-300">
+            <label
+              htmlFor="subject"
+              className="mb-2 block text-sm font-medium text-zinc-300"
+            >
               Subject <span className="text-zinc-500">(optional)</span>
             </label>
             <input
@@ -265,25 +268,33 @@ export default function ContactForm() {
               onBlur={() => handleBlur("subject")}
               aria-invalid={!!errors.subject}
               aria-describedby={errors.subject ? "subject-error" : undefined}
-              className="w-full rounded-xl border border-white/10 bg-background px-4 py-3 text-white placeholder-zinc-500 transition-colors focus:border-accent-purple focus:outline-none focus:ring-2 focus:ring-accent-purple/20"
+              className={inputClassName}
               placeholder="What's this about?"
             />
             {errors.subject && (
-              <p id="subject-error" className="mt-1.5 text-sm text-red-400" role="alert">
+              <p
+                id="subject-error"
+                className="mt-1.5 text-sm text-red-400"
+                role="alert"
+              >
                 {errors.subject}
               </p>
             )}
           </div>
 
-          {/* Message with character counter */}
           <div className="mb-6">
             <div className="mb-2 flex items-center justify-between">
-              <label htmlFor="message" className="text-sm font-medium text-zinc-300">
+              <label
+                htmlFor="message"
+                className="text-sm font-medium text-zinc-300"
+              >
                 Message <span className="text-accent-purple">*</span>
               </label>
               <span
                 className={`text-xs ${
-                  messageLength > MESSAGE_MAX_LENGTH ? "text-red-400" : "text-zinc-500"
+                  messageLength > MESSAGE_MAX_LENGTH
+                    ? "text-red-400"
+                    : "text-zinc-500"
                 }`}
                 aria-live="polite"
               >
@@ -300,17 +311,20 @@ export default function ContactForm() {
               onBlur={() => handleBlur("message")}
               aria-invalid={!!errors.message}
               aria-describedby={errors.message ? "message-error" : undefined}
-              className="w-full resize-y rounded-xl border border-white/10 bg-background px-4 py-3 text-white placeholder-zinc-500 transition-colors focus:border-accent-purple focus:outline-none focus:ring-2 focus:ring-accent-purple/20"
+              className={`${inputClassName} resize-y`}
               placeholder="Tell me about your project or inquiry..."
             />
             {errors.message && (
-              <p id="message-error" className="mt-1.5 text-sm text-red-400" role="alert">
+              <p
+                id="message-error"
+                className="mt-1.5 text-sm text-red-400"
+                role="alert"
+              >
                 {errors.message}
               </p>
             )}
           </div>
 
-          {/* Submit button with loading spinner */}
           <button
             type="submit"
             disabled={isSubmitting}

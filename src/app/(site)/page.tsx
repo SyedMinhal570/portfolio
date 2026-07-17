@@ -1,6 +1,7 @@
 /**
  * Homepage — composes all portfolio sections as separate components.
- * Each section lives in /components for modularity and easier video walkthroughs.
+ * Section order leaves room to insert Certifications between Skills and
+ * Experience later without restructuring surrounding layout rhythm.
  */
 
 import Hero from "@/components/Hero";
@@ -17,6 +18,7 @@ export default function Home() {
       <Hero />
       <About />
       <Skills />
+      {/* Certifications can be inserted here later (between Skills and Experience) */}
       <Projects />
       <Experience />
       <ContactForm />
