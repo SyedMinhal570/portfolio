@@ -74,7 +74,11 @@ async function recordFailedAttempt(ipAddress: string) {
   });
 
   const now = new Date();
-  const previousAttempts = existing?.attempts ?? 0;
+  // After a block window expires, start a fresh attempt counter
+  // instead of immediately re-blocking on the next failure.
+  const blockExpired =
+    !!existing?.blockedUntil && existing.blockedUntil <= now;
+  const previousAttempts = blockExpired ? 0 : (existing?.attempts ?? 0);
   const nextAttempts = previousAttempts + 1;
   const blockedUntil =
     nextAttempts >= MAX_ATTEMPTS
