@@ -6,6 +6,9 @@ import { createClient } from "@/lib/supabase/server";
 
 export type LoginResult = { success: true } | { success: false; error: string };
 
+/** Flip to true once Google reCAPTCHA v3 keys work reliably again. */
+const RECAPTCHA_ENABLED = false;
+
 const MAX_ATTEMPTS = 5;
 const BLOCK_DURATION_MS = 15 * 60 * 1000;
 const RECAPTCHA_MIN_SCORE = 0.5;
@@ -130,13 +133,17 @@ export async function loginAction(
     };
   }
 
-  const captchaOk = await verifyRecaptcha(recaptchaToken);
-  console.log("[loginAction] recaptcha verify result:", captchaOk);
-  if (!captchaOk) {
-    return {
-      success: false,
-      error: "Verification failed. Please try again.",
-    };
+  if (RECAPTCHA_ENABLED) {
+    const captchaOk = await verifyRecaptcha(recaptchaToken);
+    console.log("[loginAction] recaptcha verify result:", captchaOk);
+    if (!captchaOk) {
+      return {
+        success: false,
+        error: "Verification failed. Please try again.",
+      };
+    }
+  } else {
+    console.log("[loginAction] RECAPTCHA_ENABLED=false — skipping siteverify");
   }
 
   const supabase = await createClient();

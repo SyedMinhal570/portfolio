@@ -1,12 +1,19 @@
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 interface ContactAlertParams {
   name: string;
   email: string;
   subject: string | null;
   message: string;
+}
+
+function getResendClient(): Resend | null {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    console.error("RESEND_API_KEY is not set. Cannot send contact alert.");
+    return null;
+  }
+  return new Resend(apiKey);
 }
 
 export async function sendContactAlertEmail(contact: ContactAlertParams) {
@@ -16,6 +23,9 @@ export async function sendContactAlertEmail(contact: ContactAlertParams) {
       console.error("ADMIN_EMAIL is not set. Cannot send contact alert.");
       return;
     }
+
+    const resend = getResendClient();
+    if (!resend) return;
 
     const emailSubject = `New Contact Form Submission${
       contact.subject ? ": " + contact.subject : ""

@@ -8,6 +8,9 @@ import { Loader2, Lock } from "lucide-react";
 import { validateEmail } from "@/lib/validation";
 import { loginAction } from "./actions";
 
+/** Flip to true once Google reCAPTCHA v3 keys work reliably again. */
+const RECAPTCHA_ENABLED = false;
+
 const SITE_KEY = (process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY ?? "").trim();
 const RECAPTCHA_SCRIPT_SRC = `https://www.google.com/recaptcha/api.js?render=${SITE_KEY}`;
 
@@ -67,6 +70,11 @@ export default function LoginPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
+    if (!RECAPTCHA_ENABLED) {
+      console.log("[recaptcha] disabled — skipping script/DOM checks");
+      return;
+    }
+
     const script = document.querySelector<HTMLScriptElement>(
       'script[src*="google.com/recaptcha/api.js"]'
     );
@@ -100,20 +108,29 @@ export default function LoginPage() {
     setIsSubmitting(true);
 
     try {
-      console.log(
-        "[login] submit: SITE_KEY length=",
-        SITE_KEY.length,
-        "will render Script=",
-        !!SITE_KEY
-      );
+      let recaptchaToken = "";
 
-      const recaptchaToken = await getRecaptchaToken();
-      if (!recaptchaToken) {
+      if (RECAPTCHA_ENABLED) {
         console.log(
-          "[login] submit: aborting before loginAction — no recaptcha token (SITE_KEY or grecaptcha missing)"
+          "[login] submit: SITE_KEY length=",
+          SITE_KEY.length,
+          "will render Script=",
+          !!SITE_KEY
         );
-        setSubmitError("Verification failed. Please try again.");
-        return;
+
+        const token = await getRecaptchaToken();
+        if (!token) {
+          console.log(
+            "[login] submit: aborting before loginAction — no recaptcha token (SITE_KEY or grecaptcha missing)"
+          );
+          setSubmitError("Verification failed. Please try again.");
+          return;
+        }
+        recaptchaToken = token;
+      } else {
+        console.log(
+          "[login] submit: RECAPTCHA_ENABLED=false — skipping token generation"
+        );
       }
 
       console.log("[login] submit: calling loginAction Server Action");
@@ -135,7 +152,7 @@ export default function LoginPage() {
 
   return (
     <section className="flex min-h-[calc(100vh-4rem)] items-center justify-center px-4 py-20 sm:px-6">
-      {SITE_KEY && (
+      {RECAPTCHA_ENABLED && SITE_KEY && (
         <Script
           id="google-recaptcha-v3"
           src={RECAPTCHA_SCRIPT_SRC}
