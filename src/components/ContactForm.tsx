@@ -45,11 +45,16 @@ const initialFormData: ContactFormData = {
  *   if (!response.ok) throw new Error("Failed to send message");
  */
 async function handleContactSubmit(data: ContactFormData): Promise<void> {
-  // Simulated network delay — remove when wiring to real API
-  await new Promise((resolve) => setTimeout(resolve, 1500));
+  const response = await fetch("/api/contact", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
 
-  // Temporary: log form payload until Task 4 backend is connected
-  console.log("Contact form submitted:", data);
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => null);
+    throw new Error(errorData?.error || "Failed to send message");
+  }
 }
 
 export default function ContactForm() {
@@ -58,6 +63,7 @@ export default function ContactForm() {
   const [touched, setTouched] = useState<Partial<Record<keyof ContactFormData, boolean>>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   /** Update a single field and re-validate if the field was already touched */
   const handleChange = (field: keyof ContactFormData, value: string) => {
@@ -115,6 +121,7 @@ export default function ContactForm() {
 
       setIsSubmitting(true);
       setShowSuccess(false);
+      setSubmitError(null);
 
       try {
         await handleContactSubmit(formData);
@@ -127,6 +134,7 @@ export default function ContactForm() {
         setTimeout(() => setShowSuccess(false), 5000);
       } catch (error) {
         console.error("Contact form submission failed:", error);
+        setSubmitError(error instanceof Error ? error.message : "Something went wrong.");
       } finally {
         setIsSubmitting(false);
       }
@@ -154,7 +162,7 @@ export default function ContactForm() {
           </p>
         </motion.div>
 
-        {/* Success toast — shown after simulated submit */}
+        {/* Success toast */}
         {showSuccess && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
@@ -164,7 +172,21 @@ export default function ContactForm() {
             className="mb-6 flex items-center gap-3 rounded-xl border border-accent-cyan/30 bg-accent-cyan/10 px-4 py-3 text-sm text-accent-cyan"
           >
             <CheckCircle size={20} aria-hidden="true" />
-            Message sent successfully! (Demo mode — check console for payload.)
+            Message sent successfully! I&apos;ll get back to you soon.
+          </motion.div>
+        )}
+
+        {/* Error toast */}
+        {submitError && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            role="status"
+            aria-live="polite"
+            className="mb-6 flex items-center gap-3 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400"
+          >
+            <span aria-hidden="true">⚠️</span>
+            {submitError}
           </motion.div>
         )}
 

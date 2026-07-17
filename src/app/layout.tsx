@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Inter, Space_Grotesk } from "next/font/google";
-import Navbar from "@/components/Navbar";
 import "./globals.css";
 
 /** Space Grotesk — used for headings (font-heading utility) */
@@ -41,9 +40,7 @@ export default function RootLayout({
       <body
         className={`${spaceGrotesk.variable} ${inter.variable} min-h-screen bg-background font-body antialiased text-zinc-100`}
       >
-        {/* Navbar is in layout so it appears on every page */}
-        <Navbar />
-        <main>{children}</main>
+        {children}
       </body>
     </html>
   );
