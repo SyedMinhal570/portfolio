@@ -22,24 +22,55 @@ export default function Navbar() {
 
     if (elements.length === 0) return;
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const visible = entries
-          .filter((entry) => entry.isIntersecting)
-          .sort((a, b) => b.intersectionRatio - a.intersectionRatio);
+    let ticking = false;
 
-        if (visible[0]?.target?.id) {
-          setActiveHref(`#${visible[0].target.id}`);
-        }
-      },
-      {
-        rootMargin: "-20% 0px -55% 0px",
-        threshold: [0.1, 0.25, 0.5],
+    // "Closest to top" scroll-spy: the active section is the LAST one whose
+    // top edge has scrolled above a reference line just below the fixed nav.
+    // This is robust for variable-height sections (a tall Projects section
+    // stays active the whole time it occupies the reference line), unlike
+    // intersection-ratio comparisons which favor short sections.
+    function updateActive() {
+      ticking = false;
+
+      // Reference line: ~30% down the viewport (below the 4rem navbar,
+      // deep enough that a section "counts" once it fills the upper screen).
+      const refLine = window.innerHeight * 0.3;
+
+      // Bottom of page: always highlight the last section (Contact),
+      // which may be too short to ever reach the reference line.
+      const scrollBottom = window.innerHeight + window.scrollY;
+      const docHeight = document.documentElement.scrollHeight;
+      if (docHeight - scrollBottom < 4) {
+        const last = elements[elements.length - 1];
+        setActiveHref(`#${last.id}`);
+        return;
       }
-    );
 
-    elements.forEach((el) => observer.observe(el));
-    return () => observer.disconnect();
+      let current = elements[0];
+      for (const el of elements) {
+        if (el.getBoundingClientRect().top <= refLine) {
+          current = el;
+        } else {
+          break;
+        }
+      }
+      setActiveHref(`#${current.id}`);
+    }
+
+    function onScroll() {
+      if (!ticking) {
+        ticking = true;
+        window.requestAnimationFrame(updateActive);
+      }
+    }
+
+    updateActive();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
   }, []);
 
   function linkClass(href: string, mobile = false) {
