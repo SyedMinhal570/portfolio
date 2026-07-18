@@ -41,7 +41,7 @@ export const personalInfo = {
   name: "Muhammad Minhal",
   tagline: "Computer Engineering Student | AI/ML & Embedded Systems Enthusiast",
   bio: "Computer Engineering undergraduate at Information Technology University, Lahore, currently building real-world projects across embedded systems, machine learning, and full-stack development. Passionate about systems that combine hardware and software — from STM32 microcontrollers to deployed AI applications. Currently interning in MERN stack development.",
-  email: "contact@example.com", // placeholder — update with real email when ready
+  email: "minhalmuhammad7@gmail.com",
   social: {
     github: "https://github.com/SyedMinhal570",
     // Set to your LinkedIn URL when ready — icon is hidden while empty or "#"
