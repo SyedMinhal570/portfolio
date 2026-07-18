@@ -7,6 +7,7 @@
 import Hero from "@/components/Hero";
 import About from "@/components/About";
 import Skills from "@/components/Skills";
+import Certifications from "@/components/Certifications";
 import Projects from "@/components/Projects";
 import Experience from "@/components/Experience";
 import ContactForm from "@/components/ContactForm";
@@ -18,7 +19,7 @@ export default function Home() {
       <Hero />
       <About />
       <Skills />
-      {/* Certifications can be inserted here later (between Skills and Experience) */}
+      <Certifications />
       <Projects />
       <Experience />
       <ContactForm />
