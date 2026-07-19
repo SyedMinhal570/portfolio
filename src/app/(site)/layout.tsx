@@ -1,4 +1,5 @@
 import Navbar from "@/components/Navbar";
+import ChatbotWidget from "@/components/ChatbotWidget";
 
 export default function SiteLayout({
   children,
@@ -9,6 +10,7 @@ export default function SiteLayout({
     <>
       <Navbar />
       <main>{children}</main>
+      <ChatbotWidget />
     </>
   );
 }
